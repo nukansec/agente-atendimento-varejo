@@ -12,6 +12,7 @@ from agente_varejo.api_simulada import carregar_pedidos, criar_app
 from agente_varejo.api_simulada.transporte import cliente_em_memoria
 from agente_varejo.config import ConfigAgente, carregar_config
 from agente_varejo.llm import FakeLLM, LLMClient
+from agente_varejo.logs import RegistradorMemoria
 
 CLIENTE = "CLI-001"
 
@@ -32,11 +33,34 @@ def http() -> Iterator[httpx.Client]:
 
 
 @pytest.fixture
-def montar(config: ConfigAgente, http: httpx.Client) -> Callable[..., Agente]:
+def registros() -> RegistradorMemoria:
+    """Log em memória do teste (para verificar o que foi registrado)."""
+    return RegistradorMemoria()
+
+
+@pytest.fixture
+def esperas() -> list[float]:
+    """Esperas de backoff pedidas no teste (ninguém dorme de verdade)."""
+    return []
+
+
+@pytest.fixture
+def montar(
+    config: ConfigAgente,
+    http: httpx.Client,
+    registros: RegistradorMemoria,
+    esperas: list[float],
+) -> Callable[..., Agente]:
     """Fábrica de agente; por padrão usa o `FakeLLM` em modo de regras."""
 
-    def _montar(llm: LLMClient | None = None) -> Agente:
-        return construir_agente(config, http, llm=llm or FakeLLM())
+    def _montar(llm: LLMClient | None = None, cliente_http: httpx.Client | None = None) -> Agente:
+        return construir_agente(
+            config,
+            cliente_http or http,
+            llm=llm or FakeLLM(),
+            registrador=registros,
+            dormir=esperas.append,
+        )
 
     return _montar
 

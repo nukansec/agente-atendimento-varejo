@@ -8,7 +8,8 @@ import httpx
 
 from agente_varejo.agente.modelos import Sessao
 from agente_varejo.agente.nucleo import construir_agente
-from agente_varejo.config import carregar_config
+from agente_varejo.config import carregar_config, raiz_projeto
+from agente_varejo.logs import RegistradorJSON, destino_arquivo
 
 
 def main() -> None:
@@ -19,10 +20,13 @@ def main() -> None:
 
     config = carregar_config()
     with httpx.Client(base_url=config.api.base_url, timeout=config.api.timeout_s) as http:
-        agente = construir_agente(config, http)
+        # No chat o log vai para arquivo, para não se misturar com a conversa.
+        caminho_log = raiz_projeto() / "logs" / "agente.jsonl"
+        registrador = RegistradorJSON(destino_arquivo(caminho_log))
+        agente = construir_agente(config, http, registrador=registrador)
         sessao = Sessao(cliente_id=argumentos.cliente)
         print(f"Sessão {sessao.id} · cliente {sessao.cliente_id} · LLM {config.llm.provedor}")
-        print("Digite sua mensagem (ou 'sair').")
+        print(f"Logs em {caminho_log}. Digite sua mensagem (ou 'sair').")
         while True:
             try:
                 texto = input("> ").strip()

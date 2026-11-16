@@ -88,7 +88,8 @@ class FakeLLM:
     def _responder_resultado(conteudo: str) -> RespostaLLM:
         resultado = json.loads(conteudo)
         if not resultado.get("encontrado"):
-            return resposta_json("Não encontrei esse pedido. Pode confirmar o número?")
+            # Resultado de erro (ex.: argumento recusado pelo código): pede o número de novo.
+            return resposta_json("Não consegui consultar. Pode confirmar o número do pedido?")
         texto = f"O pedido {resultado['id_pedido']} está com status: {resultado['status']}."
         if resultado.get("previsao_entrega"):
             texto += f" Previsão de entrega: {resultado['previsao_entrega']}."
