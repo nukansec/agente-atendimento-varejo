@@ -1,0 +1,21 @@
+# Parâmetros do agente. Tudo que muda comportamento fica aqui, versionado.
+
+llm:
+  provedor: fake                  # fake | gemini
+  modelo: gemini-3.5-flash-lite   # usado só pelo adaptador real
+  temperatura: 0.0                # atendimento factual: queremos o mínimo de variação
+
+api:
+  base_url: http://127.0.0.1:8000
+  timeout_s: 3.0
+  retries: 2                      # novas tentativas além da primeira chamada
+  backoff_base_s: 0.5             # espera = base * fator^tentativa + jitter
+  backoff_fator: 2.0
+  jitter_s: 0.25
+
+agente:
+  prompt_sistema: prompts/system_v1.md
+  definicao_tools: prompts/tools_v1.yaml
+  max_passos: 4                   # teto de idas ao LLM por turno
+  limiar_confianca: 0.6           # abaixo disso: handoff
+  max_chars_entrada: 1000

@@ -1,0 +1,33 @@
+# DADOS SINTÉTICOS — nenhum pedido, cliente ou data aqui é real.
+# A API simulada lê este arquivo; trocar o domínio não exige mexer no código.
+
+falhas_simuladas:
+  id_timeout: PED-9001      # a API demora `atraso_timeout_s` e responde 504
+  id_erro_500: PED-9002     # a API responde HTTP 500 na hora
+  atraso_timeout_s: 1.0
+
+pedidos:
+  - id: PED-1001
+    cliente_id: CLI-001
+    status: pago
+    previsao_entrega: "2026-11-25"
+  - id: PED-1002
+    cliente_id: CLI-001
+    status: separando
+    previsao_entrega: "2026-11-24"
+  - id: PED-1003
+    cliente_id: CLI-001
+    status: enviado
+    previsao_entrega: "2026-11-20"
+  - id: PED-1004
+    cliente_id: CLI-001
+    status: entregue
+    previsao_entrega: null
+  - id: PED-1005
+    cliente_id: CLI-002     # pedido de OUTRO cliente: usado nos testes de autorização
+    status: cancelado
+    previsao_entrega: null
+  - id: PED-1006
+    cliente_id: CLI-001
+    status: atrasado
+    previsao_entrega: "2026-11-28"
