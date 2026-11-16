@@ -156,7 +156,10 @@ class Agente:
                     return self._fim(turno, Desfecho.HANDOFF, "saida_invalida")
                 ja_corrigiu = True
                 turno.guardrails.append(f"saida_invalida:{erro}")
-                mensagens.append(Mensagem("assistente", resposta.texto or "", bruto=resposta.bruto))
+                # A saída rejeitada volta ao modelo para ele se corrigir, mas mascarada:
+                # se ele inventou ou repetiu um CPF, isso não é reenviado.
+                rejeitada = mascarar_cpf(resposta.texto or "")[0]
+                mensagens.append(Mensagem("assistente", rejeitada))
                 correcao = self._msg["correcao_formato"].format(erro=erro)
                 mensagens.append(Mensagem("usuario", correcao))
                 continue
