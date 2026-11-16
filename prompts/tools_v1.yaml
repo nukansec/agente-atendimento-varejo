@@ -1,0 +1,13 @@
+# Definição das tools expostas ao LLM (o texto abaixo é enviado ao modelo).
+# Repare: não existe parâmetro de cliente. Quem é o cliente vem da sessão.
+- nome: consultar_pedido
+  descricao: >-
+    Consulta o status de um pedido do cliente desta conversa pelo número do
+    pedido. Use sempre que o cliente perguntar sobre a situação de um pedido.
+  parametros:
+    type: object
+    properties:
+      id_pedido:
+        type: string
+        description: "Número do pedido no formato PED-0000 (ex.: PED-1001)."
+    required: [id_pedido]
