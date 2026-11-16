@@ -3,19 +3,23 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+import random
+import time
+from collections.abc import Callable
+from dataclasses import dataclass, replace
 from typing import Any, Literal
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from agente_varejo.agente.retry import PoliticaRetry, executar_com_retry
 from agente_varejo.config import carregar_yaml
 from agente_varejo.dominio import FORMATO_ID_PEDIDO, Pedido
 from agente_varejo.llm.base import DefinicaoTool
 
 NOME_TOOL = "consultar_pedido"
 
-TipoResultado = Literal["ok", "nao_encontrado", "falha", "argumento_invalido"]
+TipoResultado = Literal["ok", "nao_encontrado", "nao_autorizado", "falha", "argumento_invalido"]
 
 
 class ArgumentosConsulta(BaseModel):
@@ -35,6 +39,8 @@ class ResultadoConsulta:
     pedido: Pedido | None = None
     tentativas: int = 1
     detalhe: str = ""
+    repetivel: bool = False
+    """Falha transitória (rede, timeout, 5xx, 429): vale a pena tentar de novo."""
 
     def para_llm(self) -> str:
         """Serializa só o que o modelo precisa ver (sem `cliente_id`)."""
@@ -45,8 +51,6 @@ class ResultadoConsulta:
                 "status": self.pedido.status,
                 "previsao_entrega": self.pedido.previsao_entrega,
             }
-        elif self.tipo == "nao_encontrado":
-            corpo = {"encontrado": False, "id_pedido": self.id_pedido}
         else:
             corpo = {"erro": self.detalhe or self.tipo}
         return json.dumps(corpo, ensure_ascii=False)
@@ -66,19 +70,46 @@ def validar_argumentos(argumentos: dict[str, Any]) -> str | None:
 class ClientePedidos:
     """Cliente HTTP da API de pedidos. Recebe o `httpx.Client` pronto (injeção)."""
 
-    def __init__(self, http: httpx.Client) -> None:
+    def __init__(
+        self,
+        http: httpx.Client,
+        politica: PoliticaRetry | None = None,
+        dormir: Callable[[float], None] = time.sleep,
+        rng: random.Random | None = None,
+    ) -> None:
         self._http = http
+        self._politica = politica or PoliticaRetry()
+        self._dormir = dormir
+        self._rng = rng
 
     def consultar(self, id_pedido: str) -> ResultadoConsulta:
-        """Busca um pedido e classifica o resultado em ok / não encontrado / falha."""
+        """Busca um pedido, repetindo com backoff quando a falha é transitória."""
+        resultado, tentativas = executar_com_retry(
+            operacao=lambda: self._uma_tentativa(id_pedido),
+            deve_repetir=lambda r: r.repetivel,
+            politica=self._politica,
+            dormir=self._dormir,
+            rng=self._rng,
+        )
+        return replace(resultado, tentativas=tentativas)
+
+    def _uma_tentativa(self, id_pedido: str) -> ResultadoConsulta:
+        """Uma chamada HTTP, classificada em ok / não encontrado / falha."""
         try:
             resposta = self._http.get(f"/pedidos/{id_pedido}")
+        except httpx.TimeoutException:
+            return ResultadoConsulta("falha", id_pedido, detalhe="timeout", repetivel=True)
         except httpx.HTTPError as erro:
-            return ResultadoConsulta("falha", id_pedido, detalhe=type(erro).__name__)
-        if resposta.status_code == 404:
+            detalhe = f"rede_{type(erro).__name__}"
+            return ResultadoConsulta("falha", id_pedido, detalhe=detalhe, repetivel=True)
+        codigo = resposta.status_code
+        if codigo == 404:
             return ResultadoConsulta("nao_encontrado", id_pedido)
-        if resposta.status_code != 200:
-            return ResultadoConsulta("falha", id_pedido, detalhe=f"http_{resposta.status_code}")
+        if codigo != 200:
+            # 5xx e 429 costumam passar sozinhos; outros 4xx são erro nosso e não adianta repetir.
+            transitorio = codigo >= 500 or codigo == 429
+            detalhe = f"http_{codigo}"
+            return ResultadoConsulta("falha", id_pedido, detalhe=detalhe, repetivel=transitorio)
         try:
             pedido = Pedido.model_validate(resposta.json())
         except (ValueError, ValidationError):
