@@ -28,3 +28,5 @@ jobs:
         run: make lint
       - name: Testes
         run: make test
+      - name: Avaliação (15 casos, LLM falso)
+        run: make eval
