@@ -4,7 +4,7 @@
 |---|---|---|---|---|
 | E0 — Fundação | concluído | `feat/e0-fundacao` | `make setup && make lint && make test` | Conferir o CI no primeiro push; avaliar fixar as actions por SHA. |
 | E1 — API + agente + FakeLLM | concluído | `feat/e1-agente-tool` | `make test`; `make api` e, em outro terminal, `make chat` | **[verificar]** adaptador Gemini (`src/agente_varejo/llm/gemini.py`) nunca foi executado: testar com a sua chave (ver seção abaixo). |
-| E2 — Guardrails, retry, handoff, logs | pendente | `feat/e2-guardrails` | | |
+| E2 — Guardrails, retry, handoff, logs | concluído | `feat/e2-guardrails` | `make test` (158 testes); `python -m pytest tests/test_guardrail_cpf.py -v` para ver os casos de borda | Revisar os padrões de `config/guardrails.yaml` (falsos positivos listados na ADR-0004). |
 | E3 — Avaliação | pendente | `feat/e3-avaliacao` | | |
 | E4 — README e estudo | pendente | `feat/e4-readme` | | |
 
