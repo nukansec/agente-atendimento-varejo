@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agente-atendimento-varejo"
+version = "0.1.0"
+description = "Agente de atendimento que consulta status de pedido, com guardrails em código, handoff e avaliação por casos."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Brunno Cunha Bernardes" }]
+dependencies = [
+    "fastapi==0.163.1",
+    "uvicorn==0.54.0",
+    "httpx==0.28.1",
+    "pydantic==2.14.3",
+    "pyyaml==6.0.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.2.0",
+    "ruff==0.17.5",
+]
+# Só para o adaptador real; testes, CI e `make eval` não precisam dele.
+gemini = [
+    "google-genai==3.3.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+ignore = [
+    "RUF001", # textos em português usam caracteres acentuados de propósito
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"] # assert e literais de teste são esperados
