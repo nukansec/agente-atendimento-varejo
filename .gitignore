@@ -22,3 +22,7 @@ dist/
 # contexto privado de ferramentas
 CLAUDE.local.md
 .claude/settings.local.json
+.claude/settings.json
+
+# material de estudo pessoal (fora do repositório publico)
+docs/estudo.md
