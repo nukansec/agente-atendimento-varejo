@@ -17,7 +17,7 @@ build/
 dist/
 
 # artefatos de execucao
-logs/
+/logs/
 
 # contexto privado de ferramentas
 CLAUDE.local.md

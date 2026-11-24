@@ -1,0 +1,21 @@
+# Textos fixos que o CÓDIGO envia (não passam pelo LLM).
+
+recusa_injection: >-
+  Não posso seguir esse tipo de instrução. Posso ajudar com o status de um
+  pedido: é só me informar o número (ex.: PED-1001).
+recusa_autorizacao: >-
+  Só posso informar pedidos vinculados à conta desta conversa.
+recusa_tamanho: >-
+  Sua mensagem ficou longa demais. Pode resumir e informar o número do pedido?
+esclarecimento_escopo: >-
+  Por aqui eu consigo informar o status de pedidos. Qual é o número do seu
+  pedido (ex.: PED-1001)?
+confirmacao_pedido: >-
+  Não encontrei o pedido {id_pedido}. Pode conferir o número e me enviar de novo?
+handoff: >-
+  Vou transferir você para uma pessoa da nossa equipe, que continua o
+  atendimento a partir daqui.
+# Enviada ao LLM quando a saída dele não passa na validação (1 nova tentativa).
+correcao_formato: >-
+  [formato] Sua última resposta não seguiu o formato exigido ({erro}).
+  Responda somente com o objeto JSON descrito nas instruções.

@@ -48,4 +48,4 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S105", "S106"] # assert e literais de teste são esperados
+"tests/**" = ["S101", "S105", "S106", "S311"] # assert, literais e RNG com seed são esperados em teste

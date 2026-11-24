@@ -1,0 +1,52 @@
+# Política dos guardrails de entrada. O motor fica em src/agente_varejo/guardrails/.
+# Todas as regex rodam sobre o texto NORMALIZADO: minúsculas, sem acentos,
+# sem caracteres invisíveis e com espaços colapsados. Escreva-as nesse formato.
+
+injection:
+  # Soma dos pesos dos padrões que casaram. A partir do limiar: recusa.
+  # Peso 1.0 = sinal forte (basta um). Peso 0.5 = sinal fraco (precisa de dois).
+  limiar: 1.0
+  padroes:
+    - id: ignorar_instrucoes
+      peso: 1.0
+      regex: '\b(ignor\w+|desconsider\w+|esquec\w+|descart\w+|desobedec\w+)\b.{0,40}\b(instruc\w+|regras?|orientac\w+|diretriz\w*|prompt|comandos?|tudo (o )?que)'
+    - id: ignorar_instrucoes_en
+      peso: 1.0
+      regex: '\b(ignore|disregard|forget|override)\b.{0,40}\b(instructions?|rules?|prompt|guidelines?|above|previous)'
+    - id: troca_de_papel
+      peso: 1.0
+      regex: '\b(voce agora e|agora voce e|a partir de agora voce|finja (ser|que)|aja como|atue como|you are now|act as|pretend (to be|you))\b'
+    - id: revelar_prompt
+      peso: 1.0
+      regex: '\b(mostr\w+|revel\w+|exib\w+|imprim\w+|repit\w+|diga|quais? (e|sao)|show|reveal|print|repeat)\b.{0,40}\b(system prompt|prompt (de|do) sistema|seu prompt|suas instrucoes|suas regras|instrucoes (iniciais|originais|internas|do sistema)|your (instructions|prompt))'
+    - id: modo_especial
+      peso: 1.0
+      regex: '\b(modo (desenvolvedor|developer|debug|admin\w*|deus|irrestrito|livre)|developer mode|jailbreak|dan mode|sem (restricoes|restricao|filtros?|censura))\b'
+    - id: marcador_de_papel
+      peso: 1.0
+      regex: '(</?\s*(system|assistant|instructions?)\s*>|\[/?\s*(system|inst)\s*\]|###\s*(system|instruc\w+))'
+    - id: exfiltracao_em_massa
+      peso: 1.0
+      regex: '\b(todos os pedidos|pedidos de todos|todos os clientes|lista de clientes|banco de dados|base de dados)\b'
+    # --- sinais fracos ---
+    - id: autoridade_alegada
+      peso: 0.5
+      regex: '\b(sou|como) (o |a |um |uma )?(administrador\w*|admin|desenvolvedor\w*|dev|don[oa]|gerente|supervisor\w*|suporte|root)\b'
+    - id: novas_instrucoes
+      peso: 0.5
+      regex: '\b(nov[ao]s? (instruc\w+|regras?|ordens?|comandos?)|a partir de agora|de agora em diante|from now on)\b'
+    - id: burlar_controle
+      peso: 0.5
+      regex: '\b(burl\w+|contorn\w+|bypass|sobrescrev\w+|desativ\w+ (as |os |a |o )?(regras?|filtros?|protec\w+))\b'
+    - id: pedido_de_terceiro
+      peso: 0.5
+      regex: '\b(pedidos?|dados|cpf|endereco) d[eoa] (outr[oa]|qualquer|algum) (cliente|pessoa|usuario)\b'
+    - id: prefixo_de_sistema
+      peso: 0.5
+      regex: '\b(system|sistema|assistant)\s*:'
+
+escopo:
+  # Qualquer um destes temas: handoff para humano, sem chamar o LLM.
+  temas_fora: '\b(advogad\w+|procon|juridic\w+|judicia\w+|justica|indeniza\w+|danos? mora\w+|processar|acao judicial|reembols\w+|estorn\w+|devolv\w+|devoluc\w+|trocar?|reclamac\w+)\b'
+  # Sinais de que a mensagem é sobre status de pedido (além do próprio número PED-0000).
+  termos_do_escopo: '\b(pedidos?|encomendas?|compras?|entreg\w+|rastre\w+|status|situacao|cheg\w+|envi\w+|prazo|previsao|atras\w+)\b'
