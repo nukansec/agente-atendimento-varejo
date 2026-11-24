@@ -161,6 +161,9 @@ número ainda não foi medido.
 
 ## Limitações
 
+- **A avaliação 15/15 usa um LLM falso (FakeLLM)** e mede o pipeline
+  (guardrails, tool, handoff), não o modelo. O adaptador Gemini ainda não foi
+  executado; avaliar com o modelo real é o próximo passo.
 - **Adaptador Gemini não testado.** Escrito a partir da documentação do SDK
   `google-genai`, nunca executado. Os pontos a conferir estão em
   [`PROGRESSO.md`](PROGRESSO.md).
