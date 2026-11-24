@@ -52,7 +52,7 @@ flowchart LR
 | `src/agente_varejo/avaliacao/` | runner dos casos (`make eval`) |
 | `config/` | pedidos, padrões de injection, mensagens fixas, parâmetros |
 | `prompts/` | system prompt e definição da tool, versionados |
-| `docs/` | [arquitetura](docs/arquitetura.md), [ADRs](docs/adr/), [guia de estudo](docs/estudo.md) |
+| `docs/` | [arquitetura](docs/arquitetura.md), [ADRs](docs/adr/) |
 
 Sem LangChain nem framework de agente: o loop inteiro está em
 [`agente/nucleo.py`](src/agente_varejo/agente/nucleo.py).
@@ -158,6 +158,20 @@ avaliação é um teste de regressão do pipeline (guardrails, tool, validação
 handoff) supondo um modelo bem-comportado. Ela **não mede a qualidade de um
 modelo real**. Os mesmos casos rodam contra o Gemini com `--llm gemini`; esse
 número ainda não foi medido.
+
+## Como foi desenvolvido
+
+Este projeto foi desenvolvido com apoio do Claude Code (Anthropic). O escopo, a
+arquitetura e as decisões de segurança são do autor; o assistente implementou e
+revisou por épicos (E0–E4), e cada decisão não trivial está registrada em
+[`docs/adr/`](docs/adr/). O contexto que orienta o assistente está versionado em
+[`CLAUDE.md`](CLAUDE.md).
+
+Os commits saem apenas em nome do autor, sem linha de co-autoria: ele responde
+pelo que foi publicado. Para isso, o que vale é o que se pode verificar: os 164
+testes e os 15 casos de avaliação rodam sem chave (`make test`, `make eval`), e
+o que **não** foi verificado está dito em "Limitações" (o adaptador Gemini
+nunca foi executado).
 
 ## Limitações
 
