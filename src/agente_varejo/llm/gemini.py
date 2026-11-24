@@ -2,7 +2,7 @@
 
 Não é usado em testes, CI nem `make eval`. A chave vem só de variável de
 ambiente (`GEMINI_API_KEY`), lida pelo próprio SDK. Este adaptador ainda não
-foi executado contra a API real: ver os itens [verificar] no PROGRESSO.md.
+foi executado contra a API real: ver "Itens a verificar" no PROGRESSO.md.
 """
 
 from __future__ import annotations
